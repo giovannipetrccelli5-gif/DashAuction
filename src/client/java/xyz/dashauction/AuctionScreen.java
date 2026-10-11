@@ -21,10 +21,10 @@ public final class AuctionScreen extends Screen {
         .collect(Collectors.toList());
     private List<Item> filtered = allItems;
     private Item selected = Items.DIAMOND;
-    private EditBox search, minimum, worth, seconds, format;
+    private EditBox search, worth, seconds, format;
     private Button previous, next, startButton;
     private int page, left, top;
-    private String status = "Set the item, minimum payment, time and worth.";
+    private String status = "Select an item, enter its worth and set a timer.";
 
     public AuctionScreen() {
         super(Component.literal("DashAuction"));
@@ -36,9 +36,8 @@ public final class AuctionScreen extends Screen {
         int right = left + 163;
         search = field(left, top+29, 147, "Search items", "");
         search.setResponder(this::filterItems);
-        minimum = field(right, top+47, 157, "Minimum payment", "1b");
-        worth = field(right, top+85, 157, "Item worth", "2b");
-        seconds = field(right, top+123, 157, "Seconds", "60");
+        worth = field(right, top+47, 157, "Item worth", "2b");
+        seconds = field(right, top+85, 157, "Seconds", "60");
         format = field(left, top+202, 320, "Payment message format", DashAuctionClient.formatText());
         format.setMaxLength(160);
 
@@ -77,7 +76,7 @@ public final class AuctionScreen extends Screen {
         String query = term.toLowerCase(Locale.ROOT).strip();
         filtered = allItems.stream().filter(item ->
             BuiltInRegistries.ITEM.getKey(item).toString().contains(query)
-            || item.getDescription().getString().toLowerCase(Locale.ROOT).contains(query))
+            || new ItemStack(item).getHoverName().getString().toLowerCase(Locale.ROOT).contains(query))
             .collect(Collectors.toList());
     }
     private int maxPage() { return Math.max(0, (filtered.size()-1) / PAGE_SIZE); }
@@ -89,8 +88,7 @@ public final class AuctionScreen extends Screen {
     private void start() {
         try {
             DashAuctionClient.start(BuiltInRegistries.ITEM.getKey(selected).toString(),
-                Money.parse(worth.getValue()), Money.parse(minimum.getValue()),
-                Integer.parseInt(seconds.getValue()), format.getValue());
+                Money.parse(worth.getValue()), Integer.parseInt(seconds.getValue()), format.getValue());
             status = "LIVE - keep this client connected. You may close the GUI.";
         } catch (IllegalArgumentException | IllegalStateException e) {
             status = "Error: " + e.getMessage();
@@ -105,13 +103,12 @@ public final class AuctionScreen extends Screen {
         int white=0xFFFFFFFF, gray=0xFFCCCCCC;
         g.centeredText(font,title,width/2,top+8,white);
         g.text(font,"Items: "+filtered.size(),left,top+17,gray);
-        g.text(font,"Minimum payment",left+163,top+35,gray);
-        g.text(font,"Item worth (informational)",left+163,top+73,gray);
-        g.text(font,"Auction time (seconds)",left+163,top+111,gray);
+        g.text(font,"Item worth (display only)",left+163,top+35,gray);
+        g.text(font,"Auction time (seconds)",left+163,top+73,gray);
+        g.text(font,"Every payment amount counts",left+163,top+114,0xFF99FF99);
         g.text(font,"Payment notification format (use {player} and {amount})",left,top+190,gray);
         g.text(font,"Page "+(page+1)+"/"+(maxPage()+1),left+30,top+155,white);
         search.extractRenderState(g,mx,my,delta);
-        minimum.extractRenderState(g,mx,my,delta);
         worth.extractRenderState(g,mx,my,delta);
         seconds.extractRenderState(g,mx,my,delta);
         format.extractRenderState(g,mx,my,delta);
@@ -130,10 +127,10 @@ public final class AuctionScreen extends Screen {
         if(auction.phase()==AuctionEngine.Phase.LIVE){
             g.text(font,"LIVE: "+auction.secondsLeft(System.nanoTime())+"s remaining",left,top+283,0xFF55FF55);
             g.text(font,leader==null?"No qualifying payments yet":
-                "Highest: "+leader.name()+" "+Money.format(leader.amount()),left,top+296,white);
+                "Most paid: "+leader.name()+" "+Money.format(leader.total()),left,top+296,white);
         } else if(auction.phase()==AuctionEngine.Phase.ENDED){
             g.text(font,leader==null?"ENDED: no winner":
-                "ENDED: "+leader.name()+" "+Money.format(leader.amount()),left,top+283,0xFFFFFF55);
+                "ENDED - WINNER: "+leader.name()+" ("+Money.format(leader.total())+")",left,top+283,0xFFFFFF55);
         }
     }
 }
