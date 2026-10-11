@@ -125,7 +125,7 @@ public final class DashAuctionClient implements ClientModInitializer {
 
     private static void tell(String text) {
         Minecraft client = Minecraft.getInstance();
-        client.execute(() -> client.gui.getChat().addClientSystemMessage(
+        client.execute(() -> client.gui.hud.getChat().addClientSystemMessage(
             Component.literal("[DashAuction] " + text)));
     }
 }
