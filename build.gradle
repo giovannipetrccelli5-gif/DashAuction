@@ -32,3 +32,10 @@ tasks.register('coreSelfTest', JavaExec) {
   mainClass = 'xyz.dashauction.CoreSelfTest'
 }
 tasks.named('check') { dependsOn tasks.named('coreSelfTest') }
+
+// The project's test suite is a standalone Java assertion runner (coreSelfTest),
+// not a JUnit test class. Gradle 9 otherwise fails the empty JUnit-discovery task.
+// Keep coreSelfTest as a required check task so its assertions still run and fail CI.
+tasks.named('test', Test) {
+  failOnNoDiscoveredTests = false
+}
