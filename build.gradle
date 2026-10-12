@@ -1,0 +1,41 @@
+plugins {
+  id 'net.fabricmc.fabric-loom' version '1.18-SNAPSHOT'
+}
+base { archivesName = 'DashAuction' }
+version = project.version
+group = project.group
+
+repositories { mavenCentral() }
+
+loom {
+  splitEnvironmentSourceSets()
+  mods {
+    "dashauction" {
+      sourceSet sourceSets.main
+      sourceSet sourceSets.client
+    }
+  }
+}
+dependencies {
+  minecraft("com.mojang:minecraft:" + project.minecraft_version)
+  implementation("net.fabricmc:fabric-loader:" + project.loader_version)
+  implementation("net.fabricmc.fabric-api:fabric-api:" + project.fabric_api_version)
+}
+tasks.withType(JavaCompile).configureEach { options.release = 25 }
+java {
+  sourceCompatibility = JavaVersion.VERSION_25
+  targetCompatibility = JavaVersion.VERSION_25
+}
+tasks.register('coreSelfTest', JavaExec) {
+  dependsOn tasks.named('testClasses')
+  classpath = sourceSets.test.runtimeClasspath
+  mainClass = 'xyz.dashauction.CoreSelfTest'
+}
+tasks.named('check') { dependsOn tasks.named('coreSelfTest') }
+
+// The project's test suite is a standalone Java assertion runner (coreSelfTest),
+// not a JUnit test class. Gradle 9 otherwise fails the empty JUnit-discovery task.
+// Keep coreSelfTest as a required check task so its assertions still run and fail CI.
+tasks.named('test', Test) {
+  failOnNoDiscoveredTests = false
+}

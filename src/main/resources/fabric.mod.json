@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "dashauction",
+  "version": "0.1.0",
+  "name": "DashAuction",
+  "description": "Fabric 26.3 client-only in-game auction high-payment timer; no refunds or delivery.",
+  "authors": [
+    "DashAuction"
+  ],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "xyz.dashauction.DashAuctionClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~26.3",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}
